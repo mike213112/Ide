@@ -2,7 +2,8 @@
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
-from cx_Oracle import *
+import cx_Oracle
+import mysql.connector
 
 #Declaracion de funciones
 def center(toplevel): 
@@ -16,6 +17,7 @@ def center(toplevel):
 
 def crearconexion():
     # Uso de variables
+    host = 'localhost'
     nombre = StringVar()
     usuario = StringVar()
     password = StringVar()
@@ -24,7 +26,9 @@ def crearconexion():
         ventanaparaconexion.destroy()
 
     def nuevaconexion():
-        nombre =  campo.get()
+        nombre = campo.get()
+        usuario = campo1.get()
+        password = campo2.get()
         #messagebox.showinfo(message="Conexion creada con exito", title="Satisfactorio")
         if nombre == "":
             messagebox.showerror(title="Error Campo vacio",message="El campo nombre esta vacio")
@@ -34,30 +38,43 @@ def crearconexion():
             messagebox.showerror(title="Error Campo vacio", message="El campo contraseña esta vacio")
             #messagebox.askokcancel(message="Desea continuar",title="otra vez")
         else:
-            destruirventana()
-            # Crear pestanas
-            note = ttk.Notebook(ventanaprincipal)
-            note.pack(fill='both', expand='yes')
-            pestana1 = ttk.Frame(note)
-            note.add(pestana1, text=nombre)
+            if nombre != "" and usuario != "" and password != "":
+                #Crear nueva conexion
+                nueva = mysql.connector.connect(
+                    host = host,
+                    user = usuario,
+                    passwd = password,
+                    database = nombre
+                )
+                cursor = nueva.cursor()
+                cursor.execute("CREATE DATABASE " + nombre)
+                messagebox._show(title="BataBase Create", message="La Base de datos fue creado con exito")
+                print(cursor)
 
-            #Creamos el scroll
-            sroll = Scrollbar(note)
+                destruirventana()
+                # Crear pestanas
+                note = ttk.Notebook(ventanaprincipal)
+                note.pack(fill='both', expand='yes')
+                pestana1 = ttk.Frame(note)
+                note.add(pestana1, text=nombre)
 
-            #Creamos nuestro campo
-            texarea = Text(pestana1, width=100, height=35, yscrollcommand=sroll.set)
-            texarea.place(x=0, y=0)
-            texarea.focus()
-            sroll.config(command=texarea.yview)
-            sroll.pack(side=RIGHT, fill=Y)
+                # Creamos el scroll
+                sroll = Scrollbar(note)
 
-            def mensaje():
-                texarea1 = Text(pestana1, width=34, height=20, wrap=WORD)
-                texarea1.place(x=807, y=0)
-                texarea1.configure(state='disabled', background='light grey')
+                # Creamos nuestro campo
+                texarea = Text(pestana1, width=100, height=35, yscrollcommand=sroll.set)
+                texarea.place(x=0, y=0)
+                texarea.focus()
+                sroll.config(command=texarea.yview)
+                sroll.pack(side=RIGHT, fill=Y)
 
-            boton2 = Button(pestana1, text="Run", command=mensaje)
-            boton2.place(x=900, y=500)
+                def mensaje():
+                    texarea1 = Text(pestana1, width=34, height=20, wrap=WORD)
+                    texarea1.place(x=807, y=0)
+                    texarea1.configure(state='disabled', background='light grey')
+
+                boton2 = Button(pestana1, text="Run", command=mensaje)
+                boton2.place(x=900, y=500)
 
     ventanaparaconexion = Tk()
     ventanaparaconexion.title("Crear Nueva Conexion")

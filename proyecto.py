@@ -5,14 +5,16 @@ from tkinter import messagebox
 import cx_Oracle
 import mysql.connector
 
+#Ver si existe la base de datos
+
 #Declaracion de funciones
-def center(toplevel): 
-    toplevel.update_idletasks() 
-    w = toplevel.winfo_screenwidth() 
-    h = toplevel.winfo_screenheight() 
-    size = tuple(int(_) for _ in toplevel.geometry().split('+')[0].split('x')) 
-    x = w/2 - size[0]/2 
-    y = h/2 - size[1]/2 
+def center(toplevel):
+    toplevel.update_idletasks()
+    w = toplevel.winfo_screenwidth()
+    h = toplevel.winfo_screenheight()
+    size = tuple(int(_) for _ in toplevel.geometry().split('+')[0].split('x'))
+    x = w/2 - size[0]/2
+    y = h/2 - size[1]/2
     toplevel.geometry("%dx%d+%d+%d" % (size + (x, y)))
 
 def crearconexion():
@@ -21,6 +23,7 @@ def crearconexion():
     nombre = StringVar()
     usuario = StringVar()
     password = StringVar()
+    plugin = 'mysql_native_password'
 
     def destruirventana():
         ventanaparaconexion.destroy()
@@ -39,12 +42,12 @@ def crearconexion():
             #messagebox.askokcancel(message="Desea continuar",title="otra vez")
         else:
             if nombre != "" and usuario != "" and password != "":
-                #Crear nueva conexion
+                # Crear nueva conexion
                 nueva = mysql.connector.connect(
-                    host = host,
-                    user = usuario,
-                    passwd = password,
-                    database = nombre
+                    host=host,
+                    user=usuario,
+                    passwd=password,
+                    auth_plugin=plugin
                 )
                 cursor = nueva.cursor()
                 cursor.execute("CREATE DATABASE " + nombre)
@@ -69,9 +72,130 @@ def crearconexion():
                 sroll.pack(side=RIGHT, fill=Y)
 
                 def mensaje():
+                    obtener = texarea.get("1.0", "end")
+                    list = []
+                    list.append(obtener)
                     texarea1 = Text(pestana1, width=34, height=20, wrap=WORD)
                     texarea1.place(x=807, y=0)
-                    texarea1.configure(state='disabled', background='light grey')
+                    texarea1.configure(background='light grey')
+                    for recorre in list:
+                        if 'select' in recorre:
+                            select = mysql.connector.connect(
+                                host=host,
+                                user=usuario,
+                                passwd=password,
+                                auth_plugin=plugin,
+                                database=nombre
+                            )
+                            selecccionar = select.cursor()  
+                            selecccionar.execute(recorre)
+                            for fila in selecccionar:
+                                texarea1.insert(1.0, fila)
+                        elif 'insert' in recorre:
+                            inser = mysql.connector.connect(
+                                host=host,
+                                user=usuario,
+                                passwd=password,
+                                auth_plugin=plugin,
+                                database=nombre
+                            )
+                            ingresar = inser.cursor()
+                            ingresar.execute(recorre)
+                            inser.commit()
+                            texarea1.insert(1.0, 'Se ha ingresado datos a la tabla')
+                        elif 'update' in recorre:
+                            upda = mysql.connector.connect(
+                                host=host,
+                                user=usuario,
+                                passwd=password,
+                                auth_plugin=plugin,
+                                database=nombre
+                            )
+                            update = upda.cursor()
+                            update.execute(recorre)
+                            upda.commit()
+                            texarea1.insert(1.0, 'se ha actualizado ', update.rowcount )
+                        elif 'delete' in recorre:
+                            dele = mysql.connector.connect(
+                                host=host,
+                                user=usuario,
+                                passwd=password,
+                                auth_plugin=plugin,
+                                database=nombre
+                            )
+                            delete = dele.cursor()
+                            delete.execute(recorre)
+                            dele.commit()
+                            texarea1.insert(1.0, "se ha eliminado ", delete.rowcount)
+                        elif 'create table' in recorre:
+                            crear = mysql.connector.connect(
+                                host=host,
+                                user=usuario,
+                                passwd=password,
+                                auth_plugin=plugin,
+                                database=nombre
+                            )
+                            createtable = crear.cursor()
+                            createtable.execute(recorre)
+                            texarea1.insert(1.0, 'Tabla creada correctamente')
+                        elif 'drop table' in recorre:
+                            dro = mysql.connector.connect(
+                                host=host,
+                                user=usuario,
+                                passwd=password,
+                                auth_plugin=plugin,
+                                database=nombre
+                            )
+
+                            drop = dro.cursor()
+                            drop.execute(recorre)
+                            texarea1.insert(1.0, 'se ha eliminado la tabla')
+                        elif 'create user' in recorre:
+                            creuser = mysql.connector.connect(
+                                host=host,
+                                user=usuario,
+                                passwd=password,
+                                auth_plugin=plugin,
+                                database=nombre
+                            )
+                            crearuser = creuser.cursor()
+                            crearuser.execute(recorre)
+                            texarea1.insert(1.0, 'se ha creado el usuario')
+                        elif 'alter user' in recorre:
+                            alte = mysql.connector.connect(
+                                host=host,
+                                user=usuario,
+                                passwd=password,
+                                auth_plugin=plugin,
+                                database=nombre
+                            )
+                            alteruser = alte.cursor()
+                            alteruser.execute(recorre)
+                            texarea1.insert(1.0, 'se ha alterado el usuario correctamente')
+                        elif 'drop user' in recorre:
+                            dropus = mysql.connector.connect(
+                                host=host,
+                                user=usuario,
+                                passwd=password,
+                                auth_plugin=plugin,
+                                database=nombre
+                            )
+                            eliminaruser = dropus.cursor()
+                            eliminaruser.execute(recorre)
+                            dropus.commit()
+                            texarea1.insert(1.0, 'Se ha eliminado correctamente el usuario')
+                        elif 'create schema' in recorre:
+                            crearsch = mysql.connector.connect(
+                                host=host,
+                                user=usuario,
+                                passwd=password,
+                                auth_plugin=plugin,
+                                database=nombre
+                            )
+                            crearschema = crearsch.cursor()
+                            crearschema.execute(recorre)
+                            texarea1.insert(1.0, 'Schema creado')
+
 
                 boton2 = Button(pestana1, text="Run", command=mensaje)
                 boton2.place(x=900, y=500)
